@@ -87,7 +87,7 @@ function getVariants(c, allowDaku, allowHandaku, unifySmall) {
 }
 
 /* =========================
-   探索エンジン本体（Python app.py → JS 完全移植）
+   探索エンジン本体
    ========================= */
 
 function searchRoutes(d) {
@@ -171,9 +171,6 @@ function searchRoutes(d) {
       mustSpecs.push([getBaseChar(token, filtS, filtD, filtH), ">=", 1]);
     }
   });
-
-  /* ここまで Part1（前半） */
-  /* ==== Part1 の続き ==== */
 
   // 辞書プール（dictionary.js の DICTIONARY_MASTER を使用）
   let rawPool = [];
@@ -405,7 +402,7 @@ function searchRoutes(d) {
 }
 
 /* =========================
-   UI ロジック（index.html と連携）
+   UI ロジック
    ========================= */
 
 let currentRoutes = [];
@@ -420,6 +417,10 @@ function adjustVal(id, delta) {
   const el = document.getElementById(id);
   el.value = Math.max(0, parseInt(el.value || 0) + delta);
   saveSettings();
+}
+
+function to_katakana(text) {
+  return text.replace(/[ぁ-ん]/g, s => String.fromCharCode(s.charCodeAt(0) + 0x60));
 }
 
 function getWordStyle(state) {
