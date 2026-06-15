@@ -8,45 +8,27 @@
 
   <style>
     html,body{overflow-x:hidden;touch-action:pan-y;}
-
-    /* 🌗 白文字ナイトモード（OSの背景はそのまま） */
     .dark { background-color: transparent !important; }
     .dark * { color:#ffffff !important; }
-
     input,select,textarea{
-      background:#f1f5f9;
-      border-radius:12px;
-      padding:6px 8px;
-      font-size:11px;
-      font-weight:bold;
+      background:#f1f5f9;border-radius:12px;padding:6px 8px;font-size:11px;font-weight:bold;
     }
     .dark input,.dark select,.dark textarea{
-      background:#1e293b !important;
-      color:#ffffff !important;
+      background:#1e293b !important;color:#ffffff !important;
     }
-
     .step-btn{
-      background:#e2e8f0;
-      width:28px;height:28px;
-      border-radius:8px;
-      font-weight:900;
-      font-size:12px;
+      background:#e2e8f0;width:28px;height:28px;border-radius:8px;font-weight:900;font-size:12px;
     }
     .dark .step-btn{
-      background:#334155 !important;
-      color:#ffffff !important;
+      background:#334155 !important;color:#ffffff !important;
     }
-
     .glass{
-      background:rgba(255,255,255,0.9);
-      backdrop-filter:blur(18px);
+      background:rgba(255,255,255,0.9);backdrop-filter:blur(18px);
       border:1px solid rgba(148,163,184,0.35);
     }
     .dark .glass{
-      background:rgba(15,23,42,0.9) !important;
-      border-color:rgba(30,64,175,0.6) !important;
+      background:rgba(15,23,42,0.9) !important;border-color:rgba(30,64,175,0.6) !important;
     }
-
     ::-webkit-scrollbar{display:none;}
   </style>
 </head>
@@ -55,7 +37,6 @@
 
 <div class="max-w-md mx-auto space-y-3">
 
-  <!-- ヘッダー -->
   <header class="flex items-center justify-between py-1">
     <div class="flex flex-col leading-tight">
       <span class="text-[11px] font-black tracking-[0.2em] text-slate-400 uppercase">Word Route Explorer</span>
@@ -69,10 +50,8 @@
     </button>
   </header>
 
-  <!-- メインカード -->
   <div class="glass rounded-3xl p-4 space-y-3">
 
-    <!-- 上に置く開始条件 -->
     <div class="space-y-2">
       <div>
         <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">開始単語</label>
@@ -95,7 +74,6 @@
       </div>
     </div>
 
-    <!-- 詳細設定 -->
     <details class="group border border-slate-200 dark:border-slate-700 rounded-2xl px-3 py-2">
       <summary class="flex items-center justify-between cursor-pointer select-none">
         <span class="text-[11px] font-bold tracking-widest text-slate-500 dark:text-slate-300 uppercase">詳細設定</span>
@@ -184,10 +162,8 @@
       </div>
     </details>
 
-    <!-- 詳細設定の下に置くブロック -->
     <div class="mt-2 space-y-2 border-t border-slate-200 dark:border-slate-700 pt-2">
 
-      <!-- 単語数 -->
       <div class="flex items-center justify-between">
         <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">単語数</label>
         <div class="flex items-center gap-2">
@@ -197,7 +173,6 @@
         </div>
       </div>
 
-      <!-- リアルタイム表示 ON/OFF -->
       <div class="flex items-center justify-between">
         <label class="flex items-center gap-1 text-[10px] font-bold text-blue-600">
           <input type="checkbox" id="realtime_enabled" checked>
@@ -206,7 +181,6 @@
         <div class="text-[10px] text-slate-400">探索後に件数を表示</div>
       </div>
 
-      <!-- タイムアウト / 件数制限 -->
       <div class="grid grid-cols-2 gap-2">
         <div class="flex items-center justify-between">
           <label class="flex items-center gap-1 text-[10px] font-bold text-rose-500">
@@ -224,13 +198,11 @@
         </div>
       </div>
 
-      <!-- コピー制限 -->
       <div class="flex items-center justify-between">
         <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">コピー制限数</label>
         <input id="copy_limit" type="number" value="10" class="w-16 text-center text-[11px]">
       </div>
 
-      <!-- 開始ボタン -->
       <div class="flex items-center justify-between pt-1">
         <button type="button" onclick="copyTopN()" class="px-3 py-2 rounded-2xl bg-blue-600/10 text-blue-600 text-[10px] font-black uppercase tracking-widest">
           Top N Copy
@@ -240,10 +212,8 @@
         </button>
       </div>
 
-      <!-- stats（リアルタイム表示） -->
       <div id="stats" class="text-center text-[10px] font-black text-blue-500 py-1 hidden"></div>
 
-      <!-- 辞書カテゴリ -->
       <div class="flex items-center justify-between pt-1">
         <div class="flex gap-3 text-[11px] font-bold">
           <label class="cursor-pointer text-blue-500 flex items-center gap-1">
@@ -257,13 +227,11 @@
 
     </div>
 
-    <!-- 結果 -->
     <div id="res" class="space-y-3 pt-2 pb-16"></div>
 
   </div>
 </div>
 
-<!-- 辞書マネージャ -->
 <div id="dict-manager" class="hidden fixed inset-0 z-50 bg-white dark:bg-slate-950 p-5 overflow-y-auto">
   <button type="button" onclick="document.getElementById('dict-manager').classList.add('hidden')" class="mb-4 font-bold text-rose-500 text-sm">
     CLOSE
@@ -285,7 +253,6 @@
   Dictionary
 </button>
 
-<!-- 外部スクリプト -->
 <script src="dictionary.js"></script>
 <script src="engine.js"></script>
 </body>
