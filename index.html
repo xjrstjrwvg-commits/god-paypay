@@ -1,162 +1,259 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>WORD ROUTE EXPLORER ULTRA ENGINE Pro</title>
-
-  <!-- Tailwind -->
+  <meta charset="UTF-8">
+  <title>ULTRA ENGINE Pro</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
   <script src="https://cdn.tailwindcss.com"></script>
 
   <style>
-    body { font-family: 'Inter', sans-serif; }
-    .glass {
-      background: rgba(255,255,255,0.6);
-      backdrop-filter: blur(10px);
+    html,body{overflow-x:hidden;touch-action:pan-y;}
+    .dark { background-color: transparent !important; }
+    .dark * { color:#ffffff !important; }
+    input,select,textarea{
+      background:#f1f5f9;border-radius:12px;padding:6px 8px;font-size:11px;font-weight:bold;
     }
-    .dark .glass {
-      background: rgba(0,0,0,0.4);
+    .dark input,.dark select,.dark textarea{
+      background:#1e293b !important;color:#ffffff !important;
     }
+    .step-btn{
+      background:#e2e8f0;width:28px;height:28px;border-radius:8px;font-weight:900;font-size:12px;
+    }
+    .dark .step-btn{
+      background:#334155 !important;color:#ffffff !important;
+    }
+    .glass{
+      background:rgba(255,255,255,0.9);backdrop-filter:blur(18px);
+      border:1px solid rgba(148,163,184,0.35);
+    }
+    .dark .glass{
+      background:rgba(15,23,42,0.9) !important;border-color:rgba(30,64,175,0.6) !important;
+    }
+    ::-webkit-scrollbar{display:none;}
   </style>
 </head>
 
-<body class="bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-slate-100 p-4">
+<body class="bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 p-3 pb-24">
 
-  <h1 class="text-center text-xl font-black tracking-widest mb-4">
-    WORD ROUTE EXPLORER<br>ULTRA ENGINE Pro
-  </h1>
+<div class="max-w-md mx-auto space-y-3">
 
-  <!-- 入力欄 -->
-  <div class="space-y-3">
-
-    <div>
-      <label class="text-[10px] font-black">開始単語</label>
-      <input id="sw" type="text" class="w-full p-2 rounded bg-white dark:bg-slate-800">
+  <header class="flex items-center justify-between py-1">
+    <div class="flex flex-col leading-tight">
+      <span class="text-[11px] font-black tracking-[0.2em] text-slate-400 uppercase">Word Route Explorer</span>
+      <h1 class="text-xl font-black tracking-tight text-blue-600 dark:text-blue-400">ULTRA ENGINE Pro</h1>
     </div>
 
-    <div>
-      <label class="text-[10px] font-black">開始字</label>
-      <input id="sc" type="text" class="w-full p-2 rounded bg-white dark:bg-slate-800">
+    <button type="button"
+            onclick="toggleDarkMode()"
+            class="w-9 h-9 rounded-full bg-slate-900 text-white flex items-center justify-center text-lg shadow">
+      🌗
+    </button>
+  </header>
+
+  <div class="glass rounded-3xl p-4 space-y-3">
+
+    <div class="space-y-2">
+      <div>
+        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">開始単語</label>
+        <input id="sw" class="w-full" placeholder="例: ニホン">
+      </div>
+
+      <div class="grid grid-cols-3 gap-2">
+        <div>
+          <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">開始字</label>
+          <input id="sc" class="w-full" placeholder="ア">
+        </div>
+        <div>
+          <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">終了字</label>
+          <input id="ec" class="w-full" placeholder="ン">
+        </div>
+        <div>
+          <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">必須文字</label>
+          <input id="mc" class="w-full" placeholder="ア:2,イ=1">
+        </div>
+      </div>
     </div>
 
-    <div>
-      <label class="text-[10px] font-black">終了字</label>
-      <input id="ec" type="text" class="w-full p-2 rounded bg-white dark:bg-slate-800">
+    <details class="group border border-slate-200 dark:border-slate-700 rounded-2xl px-3 py-2">
+      <summary class="flex items-center justify-between cursor-pointer select-none">
+        <span class="text-[11px] font-bold tracking-widest text-slate-500 dark:text-slate-300 uppercase">詳細設定</span>
+        <span class="text-xs text-slate-400 group-open:hidden">OPEN</span>
+        <span class="text-xs text-slate-400 hidden group-open:inline">CLOSE</span>
+      </summary>
+
+      <div class="pt-3 space-y-3 text-[11px]">
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">全語開始字</label>
+            <input id="asc" class="w-full" placeholder="ア,カ,サ">
+          </div>
+          <div>
+            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">全語終了字</label>
+            <input id="aec" class="w-full" placeholder="ン,ク">
+          </div>
+        </div>
+
+        <div>
+          <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">使える文字</label>
+          <input id="valid_chars" class="w-full" placeholder="アイウエオカキクケコ">
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">使用不可文字</label>
+            <input id="exc" class="w-full" placeholder="例: ァ,ィ">
+          </div>
+          <div>
+            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">禁止開始文字</label>
+            <input id="bsc" class="w-full" placeholder="例: ン">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">ソート順</label>
+            <select id="sort_mode" class="w-full">
+              <option value="default">検索順</option>
+              <option value="kana">50音順</option>
+              <option value="len_asc">短い順</option>
+              <option value="len_desc">長い順</option>
+              <option value="random">ランダム</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">統一適用範囲</label>
+            <select id="unify_scope" class="w-full">
+              <option value="all">すべて</option>
+              <option value="conn">接続のみ</option>
+              <option value="filter">制約のみ</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-1 text-[11px] font-bold">
+          <label><input type="checkbox" id="allow_daku"> 濁点許可</label>
+          <label><input type="checkbox" id="allow_handaku"> 半濁点許可</label>
+          <label><input type="checkbox" id="unify_small"> 小文字統一</label>
+          <label><input type="checkbox" id="char_limit_mode"> 文字重複禁止</label>
+          <label><input type="checkbox" id="auto_recovery"> 遡り接続</label>
+          <label><input type="checkbox" id="rt"> 牛耕</label>
+          <label><input type="checkbox" id="use_shift"> 50音ずらし</label>
+          <label><input type="checkbox" id="exclude_conjugate"> 共役排除</label>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">ずらし量</span>
+          <button type="button" onclick="adjustVal('ks_abs',-1)" class="step-btn">-</button>
+          <input id="ks_abs" type="number" value="1" class="w-12 text-center">
+          <button type="button" onclick="adjustVal('ks_abs',1)" class="step-btn">+</button>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">物理ずらし</label>
+          <input id="ps" type="number" value="0" class="w-16 text-center">
+        </div>
+
+        <div class="flex items-center justify-between">
+          <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">文字計</label>
+          <input id="ttl" type="number" class="w-16 text-center">
+        </div>
+
+      </div>
+    </details>
+
+    <div class="mt-2 space-y-2 border-t border-slate-200 dark:border-slate-700 pt-2">
+
+      <div class="flex items-center justify-between">
+        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">単語数</label>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="adjustVal('ml',-1)" class="step-btn">-</button>
+          <input id="ml" type="number" value="5" class="w-12 text-center">
+          <button type="button" onclick="adjustVal('ml',1)" class="step-btn">+</button>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between">
+        <label class="flex items-center gap-1 text-[10px] font-bold text-blue-600">
+          <input type="checkbox" id="realtime_enabled" checked>
+          有効リアルタイム表示
+        </label>
+        <div class="text-[10px] text-slate-400">探索後に件数を表示</div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2">
+        <div class="flex items-center justify-between">
+          <label class="flex items-center gap-1 text-[10px] font-bold text-rose-500">
+            <input type="checkbox" id="timeout_enabled">
+            タイムアウト
+          </label>
+          <input id="timeout_sec" type="number" value="15" class="w-16 text-center text-[11px]">
+        </div>
+        <div class="flex items-center justify-between">
+          <label class="flex items-center gap-1 text-[10px] font-bold text-emerald-600">
+            <input type="checkbox" id="limit_enabled">
+            件数制限
+          </label>
+          <input id="limit" type="number" value="100" class="w-16 text-center text-[11px]">
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between">
+        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">コピー制限数</label>
+        <input id="copy_limit" type="number" value="10" class="w-16 text-center text-[11px]">
+      </div>
+
+      <div class="flex items-center justify-between pt-1">
+        <button type="button" onclick="copyTopN()" class="px-3 py-2 rounded-2xl bg-blue-600/10 text-blue-600 text-[10px] font-black uppercase tracking-widest">
+          Top N Copy
+        </button>
+        <button type="button" id="btn" onclick="run()" class="px-6 py-2.5 rounded-2xl bg-blue-600 text-white text-[11px] font-black uppercase tracking-[0.2em] shadow">
+          Explore
+        </button>
+      </div>
+
+      <div id="stats" class="text-center text-[10px] font-black text-blue-500 py-1 hidden"></div>
+
+      <div class="flex items-center justify-between pt-1">
+        <div class="flex gap-3 text-[11px] font-bold">
+          <label class="cursor-pointer text-blue-500 flex items-center gap-1">
+            <input type="checkbox" name="cat" value="country" checked onchange="loadDictionaryUI()"> 国
+          </label>
+          <label class="cursor-pointer text-blue-500 flex items-center gap-1">
+            <input type="checkbox" name="cat" value="capital" onchange="loadDictionaryUI()"> 首都
+          </label>
+        </div>
+      </div>
+
     </div>
 
-    <div>
-      <label class="text-[10px] font-black">必須文字</label>
-      <input id="mc" type="text" class="w-full p-2 rounded bg-white dark:bg-slate-800">
-    </div>
-
-    <div>
-      <label class="text-[10px] font-black">全語開始字</label>
-      <input id="asc" type="text" class="w-full p-2 rounded bg-white dark:bg-slate-800">
-    </div>
-
-    <div>
-      <label class="text-[10px] font-black">全語終了字</label>
-      <input id="aec" type="text" class="w-full p-2 rounded bg-white dark:bg-slate-800">
-    </div>
-
-    <div>
-      <label class="text-[10px] font-black">使用不可文字</label>
-      <input id="exc" type="text" class="w-full p-2 rounded bg-white dark:bg-slate-800">
-    </div>
-
-    <div>
-      <label class="text-[10px] font-black">禁止開始文字</label>
-      <input id="bsc" type="text" class="w-full p-2 rounded bg-white dark:bg-slate-800">
-    </div>
-
-    <div>
-      <label class="text-[10px] font-black">最大語数</label>
-      <input id="ml" type="number" value="5" class="w-full p-2 rounded bg-white dark:bg-slate-800">
-    </div>
-
-    <div class="flex items-center gap-2">
-      <input id="allow_daku" type="checkbox">
-      <label class="text-[10px] font-black">濁点許可</label>
-    </div>
-
-    <div class="flex items-center gap-2">
-      <input id="allow_handaku" type="checkbox">
-      <label class="text-[10px] font-black">半濁点許可</label>
-    </div>
-
-    <div class="flex items-center gap-2">
-      <input id="unify_small" type="checkbox">
-      <label class="text-[10px] font-black">小文字統一</label>
-    </div>
-
-    <div class="flex items-center gap-2">
-      <input id="exclude_conjugate" type="checkbox">
-      <label class="text-[10px] font-black">共役排除</label>
-    </div>
-
-    <div class="flex items-center gap-2">
-      <input id="timeout_enabled" type="checkbox">
-      <label class="text-[10px] font-black">タイムアウト</label>
-      <input id="timeout_sec" type="number" value="15" class="w-20 p-1 rounded bg-white dark:bg-slate-800">
-    </div>
-
-    <div class="flex items-center gap-2">
-      <input id="limit_enabled" type="checkbox">
-      <label class="text-[10px] font-black">件数制限</label>
-      <input id="limit" type="number" value="0" class="w-20 p-1 rounded bg-white dark:bg-slate-800">
-    </div>
-
-    <div class="flex items-center gap-2">
-      <input id="realtime_enabled" type="checkbox">
-      <label class="text-[10px] font-black">リアルタイム件数表示</label>
-    </div>
+    <div id="res" class="space-y-3 pt-2 pb-16"></div>
 
   </div>
+</div>
 
-  <!-- Top N Copy + Explore -->
-  <div class="flex items-center justify-between pt-4">
-    <button type="button" onclick="copyTopN()"
-      class="px-3 py-2 rounded-2xl bg-blue-600/10 text-blue-600 text-[10px] font-black uppercase tracking-widest">
-      Top N Copy
-    </button>
-
-    <!-- ★ Explore ボタン（正しい位置） -->
-    <button type="button" id="btn" onclick="run()"
-      class="px-6 py-2.5 rounded-2xl bg-blue-600 text-white text-[11px] font-black uppercase tracking-[0.2em] shadow">
-      Explore
-    </button>
-  </div>
-
-  <!-- 結果 -->
-  <div id="stats" class="text-center text-[11px] font-black mt-3 hidden"></div>
-  <div id="res" class="mt-4 space-y-3"></div>
-
-  <!-- Dictionary ボタン -->
-  <button type="button"
-    onclick="document.getElementById('dict-list').scrollIntoView()"
-    class="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-4 py-2 rounded">
-    Dictionary
+<div id="dict-manager" class="hidden fixed inset-0 z-50 bg-white dark:bg-slate-950 p-5 overflow-y-auto">
+  <button type="button" onclick="document.getElementById('dict-manager').classList.add('hidden')" class="mb-4 font-bold text-rose-500 text-sm">
+    CLOSE
   </button>
+  <div class="grid grid-cols-2 gap-2 mb-4">
+    <button type="button" onclick="bulkSet('white')" class="bg-slate-100 dark:bg-slate-800 p-3 rounded-xl font-bold text-[11px]">
+      全開放
+    </button>
+    <button type="button" onclick="bulkSet('red')" class="bg-rose-100 dark:bg-rose-900/40 text-rose-600 p-3 rounded-xl font-bold text-[11px]">
+      全禁止
+    </button>
+  </div>
+  <div id="dict-list" class="grid grid-cols-2 gap-1 text-[11px]"></div>
+</div>
 
-  <!-- 辞書UI -->
-  <div id="dict-list" class="grid grid-cols-2 gap-2 mt-10"></div>
+<button type="button"
+        onclick="document.getElementById('dict-manager').classList.remove('hidden')"
+        class="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 bg-slate-900 text-white px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.25em] opacity-80 hover:opacity-100">
+  Dictionary
+</button>
 
-  <!-- Scripts -->
-  <script src="dictionary.js"></script>
-  <script src="engine.js"></script>
-
-  <!-- 読み込み確認 -->
-  <script>
-    alert("engine = " + (typeof run) + "\n" +
-          "dict = " + (typeof window.DICTIONARY));
-  </script>
-
-  <!-- エラー表示 -->
-  <script>
-    window.onerror = function(msg, src, line, col, err) {
-      alert("ERROR: " + msg + "\n" + src + ":" + line);
-    };
-  </script>
-
+<script src="dictionary.js"></script>
+<script src="engine.js"></script>
 </body>
 </html>
