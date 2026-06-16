@@ -17,7 +17,7 @@ const KANA_LIST =
   "マミムメモ" +
   "ヤユヨ" +
   "ラリルレロ" +
-  "ワン";   // ← ヲは含めない、ン→アに循環
+  "ワン";   // ヲは含めない、ン→アに循環
 
 /* =========================
    小文字・濁点・半濁点
@@ -76,7 +76,7 @@ function getCleanChar(w, pos, offset, unifySmall, unifyDaku, unifyHandaku) {
 }
 
 /* =========================
-   ずらし処理（あなたの公式ルール）
+   ずらし処理
    ========================= */
 
 function shiftKana(c, n) {
@@ -105,11 +105,10 @@ function getVariants(c, allowDaku, allowHandaku, unifySmall) {
 }
 
 /* =========================
-   探索エンジン本体（前半）
+   探索エンジン本体（DFS）
    ========================= */
 
 function searchRoutes(d) {
-
   const maxLen = parseInt(d.max_len || 5, 10);
 
   const posShift = parseInt(d.pos_shift || 0, 10);
@@ -167,11 +166,212 @@ function searchRoutes(d) {
   const banStartChars = toKatakana(d.ban_start_chars || "").split(/[,、]/)
     .map(s => s.trim()).filter(Boolean)
     .map(c => getBaseChar(c, filtS, filtD, filtH));
+
+  const categories = d.categories || [];
+  const redWords = new Set(d.red_words || []);
+  const blueWords = new Set(d.blue_words || []);
+
+  // 辞書収集
+  let words = [];
+  categories.forEach(c => {
+    const arr = (window.DICTIONARY_MASTER && DICTIONARY_MASTER[c]) || [];
+    words = words.concat(arr);
+  });
+  words = Array.from(new Set(words)).map(w => toKatakana(w));
+
+  // 赤ワード除外
+  words = words.filter(w => !redWords.has(w));
+
+  // 単語ごとの情報
+  const entries = [];
+  for (const w of words) {
+    const clean = w.replace(/ー/g, "");
+    if (!clean) continue;
+
+    // validChars 制約
+    if (validChars) {
+      let ok = true;
+      for (const ch of clean) {
+        if (!validChars.has(getBaseChar(ch, filtS, filtD, filtH))) {
+          ok = false;
+          break;
+        }
+      }
+      if (!ok) continue;
+    }
+
+    // excludeChars 制約
+    if (excludeChars.length > 0) {
+      let bad = false;
+      for (const ch of clean) {
+        const b = getBaseChar(ch, filtS, filtD, filtH);
+        if (excludeChars.includes(b)) {
+          bad = true;
+          break;
+        }
+      }
+      if (bad) continue;
+    }
+
+    // 文字重複禁止
+    if (d.char_limit_mode) {
+      const seen = new Set();
+      let dup = false;
+      for (const ch of clean) {
+        const b = getBaseChar(ch, filtS, filtD, filtH);
+        if (seen.has(b)) {
+          dup = true;
+          break;
+        }
+        seen.add(b);
+      }
+      if (dup) continue;
+    }
+
+    const head = getCleanChar(clean, "head", Math.max(0, posShift), connS, connD, connH);
+    const tail = getCleanChar(clean, "tail", 0, connS, connD, connH);
+    if (!head || !tail) continue;
+
+    // 全語開始字 / 全語終了字 制約
+    if (asc.length > 0 && !asc.includes(head)) continue;
+    if (aec.length > 0 && !aec.includes(tail)) continue;
+
+    // 禁止開始文字
+    if (banStartChars.length > 0) {
+      const baseHead = getBaseChar(head, filtS, filtD, filtH);
+      if (banStartChars.includes(baseHead)) continue;
+    }
+
+    entries.push({
+      word: w,
+      clean,
+      head,
+      tail,
+      len: clean.length
+    });
+  }
+
+  // 50音ずらし適用（接続側）
+  function shiftedTail(entry) {
+    if (!useShift) return entry.tail;
+    return shiftKana(entry.tail, ksAbs);
+  }
+
+  // インデックス
+  const byHead = new Map();
+  entries.forEach((e, idx) => {
+    if (!byHead.has(e.head)) byHead.set(e.head, []);
+    byHead.get(e.head).push(idx);
+  });
+
+  // 開始候補
+  const startIndices = [];
+  if (startWord) {
+    const sw = toKatakana(startWord);
+    entries.forEach((e, idx) => {
+      if (e.word === sw) startIndices.push(idx);
+    });
+  } else if (startChar) {
+    entries.forEach((e, idx) => {
+      if (e.head === startChar) startIndices.push(idx);
+    });
+  } else {
+    // 制約なしなら全て開始候補
+    for (let i = 0; i < entries.length; i++) startIndices.push(i);
+  }
+
+  const routes = [];
+  const used = new Array(entries.length).fill(false);
+  const startTime = performance.now();
+  const timeoutMs = timeoutSec * 1000;
+
+  function dfs(idx, path, totalLen) {
+    if (timeoutEnabled && performance.now() - startTime > timeoutMs) {
+      return "timeout";
+    }
+    if (limitEnabled && limit > 0 && routes.length >= limit) {
+      return "limit";
+    }
+
+    const e = entries[idx];
+    const newPath = path.concat(e.word);
+    const newLen = totalLen + e.len;
+
+    // 長さモード
+    if (lenMode === "fixed" && newPath.length > maxLen) {
+      return;
+    }
+    if (targetTotalLen && newLen > targetTotalLen) {
+      return;
+    }
+
+    const tailChar = shiftedTail(e);
+
+    // 終了条件
+    let okEnd = true;
+    if (endChar && tailChar !== endChar) okEnd = false;
+    if (lenMode === "fixed" && newPath.length !== maxLen) okEnd = false;
+    if (targetTotalLen && newLen !== targetTotalLen) okEnd = false;
+
+    if (okEnd) {
+      routes.push(newPath.slice());
+      if (limitEnabled && limit > 0 && routes.length >= limit) {
+        return "limit";
+      }
+    }
+
+    // 次の候補
+    const nextList = byHead.get(tailChar) || [];
+    for (const ni of nextList) {
+      if (used[ni]) continue;
+      if (excludeConjugate) {
+        // 共役排除：同じ単語は使わない程度の簡易版
+        if (newPath.includes(entries[ni].word)) continue;
+      }
+      used[ni] = true;
+      const r = dfs(ni, newPath, newLen);
+      used[ni] = false;
+      if (r === "timeout" || r === "limit") return r;
+    }
+  }
+
+  for (const si of startIndices) {
+    used[si] = true;
+    const r = dfs(si, [], 0);
+    used[si] = false;
+    if (r === "timeout" || r === "limit") break;
+  }
+
+  // ソート
+  if (sortMode === "kana") {
+    routes.sort((a, b) => a.join("").localeCompare(b.join("")));
+  } else if (sortMode === "len_asc") {
+    routes.sort((a, b) => a.join("").length - b.join("").length);
+  } else if (sortMode === "len_desc") {
+    routes.sort((a, b) => b.join("").length - a.join("").length);
+  } else if (sortMode === "random") {
+    routes.sort(() => Math.random() - 0.5);
+  }
+
+  return { routes };
+}
+
+/* =========================
+   辞書ボタンの色
+   ========================= */
+
 function getWordStyle(state) {
   if (state === 'red') return "background-color:#f43f5e;color:white;border-color:#e11d48;";
   if (state === 'blue') return "background-color:#2563eb;color:white;border-color:#1d4ed8;";
   return "";
 }
+
+/* =========================
+   グローバル状態
+   ========================= */
+
+let currentRoutes = [];
+let wordStates = {};
 
 /* =========================
    初期化
@@ -381,6 +581,23 @@ function copyTopN() {
   navigator.clipboard.writeText(
     currentRoutes.slice(0, n).map(rt => rt.join(' → ')).join('\n')
   );
+}
+
+/* =========================
+   UI ユーティリティ
+   ========================= */
+
+function toggleDarkMode() {
+  document.documentElement.classList.toggle('dark');
+  saveSettings();
+}
+
+function adjustVal(id, diff) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const v = parseInt(el.value || "0", 10);
+  el.value = v + diff;
+  saveSettings();
 }
 
 /* =========================
