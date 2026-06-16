@@ -17,7 +17,7 @@ const KANA_LIST =
   "マミムメモ" +
   "ヤユヨ" +
   "ラリルレロ" +
-  "ワン";   // ヲは含めない、ン→アに循環
+  "ワン";
 
 /* =========================
    小文字・濁点・半濁点
@@ -64,7 +64,7 @@ function getBaseChar(c, unifySmall, unifyDaku, unifyHandaku) {
 }
 
 function getCleanChar(w, pos, offset, unifySmall, unifyDaku, unifyHandaku) {
-  const text = w.replace(/ー/g, ""); // ーは無視
+  const text = w.replace(/ー/g, "");
   if (!text) return "";
   try {
     const idx = pos === "head" ? offset : text.length - 1 - offset;
@@ -83,25 +83,6 @@ function shiftKana(c, n) {
   const idx = KANA_LIST.indexOf(c);
   if (idx === -1) return c;
   return KANA_LIST[(idx + n + KANA_LIST.length) % KANA_LIST.length];
-}
-
-function getVariants(c, allowDaku, allowHandaku, unifySmall) {
-  const base = unifySmall ? (SMALL_TO_LARGE[c] || c) : c;
-  const s = new Set([base]);
-
-  if (allowDaku) {
-    for (const [k, v] of Object.entries(DAKU_MAP)) {
-      if (base === k) s.add(v);
-      if (base === v) s.add(k);
-    }
-  }
-  if (allowHandaku) {
-    for (const [k, v] of Object.entries(HANDAKU_MAP)) {
-      if (base === k) s.add(v);
-      if (base === v) s.add(k);
-    }
-  }
-  return s;
 }
 
 /* =========================
@@ -228,20 +209,45 @@ function searchRoutes(d) {
       if (dup) continue;
     }
 
+    /* =========================
+       ★ must_char（必須文字）フィルタ
+       ========================= */
+    if (d.must_char) {
+      const mustList = toKatakana(d.must_char)
+        .split(/[,、]/)
+        .map(s => s.trim())
+        .filter(Boolean);
+
+      let ok = true;
+      for (const m of mustList) {
+        if (!clean.includes(m)) {
+          ok = false;
+          break;
+        }
+      }
+      if (!ok) continue;
+    }
+
     const head = getCleanChar(clean, "head", Math.max(0, posShift), connS, connD, connH);
     const tail = getCleanChar(clean, "tail", 0, connS, connD, connH);
     if (!head || !tail) continue;
 
-    // 全語開始字 / 全語終了字 制約
     if (asc.length > 0 && !asc.includes(head)) continue;
     if (aec.length > 0 && !aec.includes(tail)) continue;
 
-    // 禁止開始文字
     if (banStartChars.length > 0) {
       const baseHead = getBaseChar(head, filtS, filtD, filtH);
       if (banStartChars.includes(baseHead)) continue;
     }
 
+    entries.push({
+      word: w,
+      clean,
+      head,
+      tail,
+      len: clean.length
+    });
+  }
     entries.push({
       word: w,
       clean,
@@ -276,7 +282,6 @@ function searchRoutes(d) {
       if (e.head === startChar) startIndices.push(idx);
     });
   } else {
-    // 制約なしなら全て開始候補
     for (let i = 0; i < entries.length; i++) startIndices.push(i);
   }
 
@@ -297,17 +302,11 @@ function searchRoutes(d) {
     const newPath = path.concat(e.word);
     const newLen = totalLen + e.len;
 
-    // 長さモード
-    if (lenMode === "fixed" && newPath.length > maxLen) {
-      return;
-    }
-    if (targetTotalLen && newLen > targetTotalLen) {
-      return;
-    }
+    if (lenMode === "fixed" && newPath.length > maxLen) return;
+    if (targetTotalLen && newLen > targetTotalLen) return;
 
     const tailChar = shiftedTail(e);
 
-    // 終了条件
     let okEnd = true;
     if (endChar && tailChar !== endChar) okEnd = false;
     if (lenMode === "fixed" && newPath.length !== maxLen) okEnd = false;
@@ -320,12 +319,10 @@ function searchRoutes(d) {
       }
     }
 
-    // 次の候補
     const nextList = byHead.get(tailChar) || [];
     for (const ni of nextList) {
       if (used[ni]) continue;
       if (excludeConjugate) {
-        // 共役排除：同じ単語は使わない程度の簡易版
         if (newPath.includes(entries[ni].word)) continue;
       }
       used[ni] = true;
@@ -342,7 +339,6 @@ function searchRoutes(d) {
     if (r === "timeout" || r === "limit") break;
   }
 
-  // ソート
   if (sortMode === "kana") {
     routes.sort((a, b) => a.join("").localeCompare(b.join("")));
   } else if (sortMode === "len_asc") {
