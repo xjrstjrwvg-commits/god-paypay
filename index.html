@@ -261,5 +261,12 @@
         "dict = " + (typeof window.DICTIONARY_MASTER));
 </script>
 
+  <script>
+window.onerror = function(msg, src, line, col, err) {
+  alert("ERROR: " + msg + "\n" + src + ":" + line);
+};
+</script>
+
+
 </body>
 </html>
